@@ -17,6 +17,7 @@ pmx.initModule({}, (err, conf) => {
     };
 
     let currentDate;
+    let index;
     let isNewElasticsearchVersion = null;
 
     request.get({
@@ -29,6 +30,7 @@ pmx.initModule({}, (err, conf) => {
         if (err) {
             console.error('cannot connect to elasticsearch!')
         } else {
+            console.log(res.body);
             const body = JSON.parse(res.body);
             if (body.version.distribution === 'opensearch' || body.version.number.split('.')[0] >= 6) {
                 isNewElasticsearchVersion = true;
@@ -58,14 +60,13 @@ pmx.initModule({}, (err, conf) => {
 
         const date = d.getDate();
         if (date !== currentDate) {
-            const index = config.index + '-' + d.getFullYear() + '.' + ('0' + (d.getMonth() + 1)).substr(-2) + '.' + ('0' + date).substr(-2);
-            console.log('sending logs to', config.elasticUrl + '/' + index + '/' + config.type);
+            index = config.index + '-' + d.getFullYear() + '.' + ('0' + (d.getMonth() + 1)).substr(-2) + '.' + ('0' + date).substr(-2);
             currentDate = date;
         }
 
         if (isNewElasticsearchVersion) {
             request.put({
-                url: `${config.elasticUrl}/_doc/${Date.now()}/`,
+                url: `${config.elasticUrl}/${index}/_doc/${Date.now()}/`,
                 headers: {
                     'Content-Type': 'application/json'
                 },
